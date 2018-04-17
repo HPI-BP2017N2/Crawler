@@ -1,0 +1,5 @@
+
+#The local configuration
+
+config:
+  file.path: "/Users/jonaspohlmann/code/HPI/BP/stormCrawlerSpike/spikeStormCrawler/crawledPages/"

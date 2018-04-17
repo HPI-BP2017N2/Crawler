@@ -24,6 +24,7 @@
 Network Trash Folder
 Temporary Items
 .apdisk
+}
 ### Maven template
 target/
 pom.xml.tag
@@ -117,6 +118,7 @@ gen
 
 crawledPages/
 
+local-conf.yaml
 access-data.yaml
 seeds.txt
 

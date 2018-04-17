@@ -1,0 +1,150 @@
+# Default configuration for StormCrawler
+# This is used to make the default values explicit and list the most common configurations.
+# Do not modify this file but instead provide a custom one with the parameter -conf
+# when launching your extension of ConfigurableTopology.  
+
+config: 
+  fetcher.server.delay: 1.0
+  fetcher.server.min.delay: 0.0
+  fetcher.queue.mode: "byHost"
+  fetcher.threads.per.queue: 1
+  fetcher.threads.number: 10
+  fetcher.max.urls.in.queues: -1
+  fetcher.max.queue.size: -1
+
+  # time bucket to use for the metrics sent by the Fetcher
+  fetcher.metrics.time.bucket.secs: 10
+
+  # alternative values are "byIP" and "byDomain"
+  partition.url.mode: "byHost"
+
+  # metadata to transfer to the outlinks
+  # used by Fetcher for redirections, sitemapparser, etc...
+  # these are also persisted for the parent document (see below)
+  # metadata.transfer:
+  # - customMetadataName
+
+  # lists the metadata to persist to storage
+  # these are not transfered to the outlinks
+  metadata.persist:
+   - _redirTo
+   - error.cause
+   - error.source
+   - isSitemap
+   - isFeed
+   
+  metadata.track.path: true
+  metadata.track.depth: true
+
+  http.agent.name: "Anonymous Coward"
+  http.agent.version: "1.0"
+  http.agent.description: "built with StormCrawler ${version}"
+  http.agent.url: "http://someorganization.com/"
+  http.agent.email: "someone@someorganization.com"
+
+  http.accept.language: "en-us,en-gb,en;q=0.7,*;q=0.3"
+  http.accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+  http.content.limit: -1
+  http.store.responsetime: true
+  http.store.headers: false
+  http.timeout: 10000
+
+  # for crawling through a proxy:
+  # http.proxy.host:
+  # http.proxy.port:
+  # okhttp only, defaults to "HTTP"
+  # http.proxy.type: "SOCKS"
+  # for crawling through a proxy with Basic authentication:
+  # http.proxy.user:
+  # http.proxy.pass:
+
+  http.robots.403.allow: true
+
+  # should the URLs be removed when a page is marked as noFollow
+  robots.noFollow.strict: true
+
+  protocols: "http,https,file"
+  http.protocol.implementation: "com.digitalpebble.stormcrawler.protocol.httpclient.HttpProtocol"
+  https.protocol.implementation: "com.digitalpebble.stormcrawler.protocol.httpclient.HttpProtocol"
+  file.protocol.implementation: "com.digitalpebble.stormcrawler.protocol.file.FileProtocol"
+
+  # navigationfilters.config.file: "navigationfilters.json"
+  # selenium.addresses: "http://localhost:9515"
+  selenium.implicitlyWait: 0
+  selenium.pageLoadTimeout: -1
+  selenium.setScriptTimeout: 0
+  selenium.instances.num: 1
+  selenium.capabilities:
+    takesScreenshot: false
+    loadImages: false
+    javascriptEnabled: true
+    # illustrates the use of the variable for user agent
+    # phantomjs.page.settings.userAgent: "$userAgent"
+    # ChromeDriver config
+    # goog:chromeOptions:
+    #   args: 
+    #      - "--headless"
+    #      - "--disable-gpu"
+    #      - "--mute-audio"
+
+  # no url or parsefilters by default
+  # parsefilters.config.file: "parsefilters.json"
+  # urlfilters.config.file: "urlfilters.json"
+
+  # JSoupParserBolt
+  jsoup.treat.non.html.as.error: true
+  parser.emitOutlinks: true
+  track.anchors: true
+  detect.mimetype: true
+  detect.charset.maxlength: 10000
+
+  # whether the sitemap parser should try to 
+  # determine whether a page is a sitemap based
+  # on its content if it is missing the K/V in the metadata
+  sitemap.sniffContent: false
+
+  # filters URLs in sitemaps based on their modified Date (if any)
+  sitemap.filter.hours.since.modified: -1
+
+  # whether to add any sitemaps found in the robots.txt to the status stream
+  # used by fetcher bolts. sitemap.sniffContent must be set to true if the 
+  # discovery is enabled
+  sitemap.discovery: false
+
+  # Default implementation of Scheduler
+  scheduler.class: "com.digitalpebble.stormcrawler.persistence.DefaultScheduler"
+
+  # revisit a page daily (value in minutes)
+  # set it to -1 to never refetch a page
+  fetchInterval.default: 1440
+
+  # revisit a page with a fetch error after 2 hours (value in minutes)
+  # set it to -1 to never refetch a page
+  fetchInterval.fetch.error: 120
+
+  # never revisit a page with an error (or set a value in minutes)
+  fetchInterval.error: -1
+
+  # custom fetch interval to be used when a document has the key/value in its metadata
+  # and has been fetched succesfully (value in minutes)
+  # fetchInterval.FETCH_ERROR.isFeed=true
+  # fetchInterval.isFeed=true: 10
+
+  # max number of successive fetch errors before changing status to ERROR
+  max.fetch.errors: 3
+
+  # Guava cache use by AbstractStatusUpdaterBolt for DISCOVERED URLs
+  status.updater.use.cache: true
+  status.updater.cache.spec: "maximumSize=10000,expireAfterAccess=1h"
+
+  # configuration for the classes extending AbstractIndexerBolt
+  # indexer.md.filter: "someKey=aValue"
+  indexer.url.fieldname: "url"
+  indexer.text.fieldname: "content"
+  indexer.text.maxlength: -1
+  indexer.canonical.name: "canonical"
+  indexer.md.mapping:
+  - parse.title=title
+  - parse.keywords=keywords
+  - parse.description=description
+  
