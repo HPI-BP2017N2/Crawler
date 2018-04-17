@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class BPRabbitMQBolt extends RabbitMQBolt {
 
-    public BPRabbitMQBolt(String exchangeName) {
-        super(new TupleToMessageCrawler(exchangeName));
+    public BPRabbitMQBolt(String exchangeName, String routingName) {
+        super(new TupleToMessageCrawler(exchangeName, routingName));
     }
 
     public BPRabbitMQBolt(TupleToMessage scheme, Declarator declarator) {

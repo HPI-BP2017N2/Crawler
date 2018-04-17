@@ -51,11 +51,12 @@ bolts:
     className: "com.digitalpebble.stormcrawler.elasticsearch.metrics.StatusMetricsBolt"
     parallelism: 1
   - id: "store"
-    #className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
-    className: "de.hpi.bpStormcrawler.BPFileBolt"
-  #  constructorArgs:
+    className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
+    constructorArgs:
         # exchangeName
-   #       - "crawler"
+          - "crawler"
+        #routingName
+          - "HtmlPagesToParse"
     parallelism: 1
 
 

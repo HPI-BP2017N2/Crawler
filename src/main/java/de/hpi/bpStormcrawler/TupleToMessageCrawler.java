@@ -15,9 +15,11 @@ import java.io.IOException;
 public class TupleToMessageCrawler extends TupleToMessage {
 
     private String EXCHANGE_NAME;
+    private String ROUTING_NAME;
 
-    TupleToMessageCrawler (String exchangeName) {
+    TupleToMessageCrawler (String exchangeName, String routingName) {
         EXCHANGE_NAME = exchangeName;
+        ROUTING_NAME = routingName;
     }
 
     @Override
@@ -26,10 +28,10 @@ public class TupleToMessageCrawler extends TupleToMessage {
         try {
             //TODO Refactor to be more generic
             XContentBuilder builder = XContentFactory.jsonBuilder().startObject();
-            builder.field("shopID",tuple.getValueByField("shopID"));
-            builder.field("fetchedDate", tuple.getValueByField("fetchedDate"));
-            builder.field("url",tuple.getValueByField("url"));
-            builder.field("content", tuple.getValueByField("content"));
+            for (String element : tuple.getFields()){
+                builder.field(element,tuple.getValueByField(element));
+            }
+
             builder.endObject();
             payload = builder.string().getBytes();
         } catch (IOException e) {
@@ -45,7 +47,7 @@ public class TupleToMessageCrawler extends TupleToMessage {
 
     @Override
     protected String determineRoutingKey(Tuple input) {
-        return "HtmlPagesToParse"; // rabbitmq java client library treats "" as no routing key
+        return ROUTING_NAME; // rabbitmq java client library treats "" as no routing key
     }
 
 
