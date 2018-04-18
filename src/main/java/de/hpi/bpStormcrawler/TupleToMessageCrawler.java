@@ -26,12 +26,10 @@ public class TupleToMessageCrawler extends TupleToMessage {
     protected byte[] extractBody(Tuple tuple) {
         byte[] payload = null;
         try {
-            //TODO Refactor to be more generic
             XContentBuilder builder = XContentFactory.jsonBuilder().startObject();
             for (String element : tuple.getFields()){
                 builder.field(element,tuple.getValueByField(element));
             }
-
             builder.endObject();
             payload = builder.string().getBytes();
         } catch (IOException e) {

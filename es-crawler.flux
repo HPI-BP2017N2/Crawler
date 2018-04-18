@@ -50,14 +50,10 @@ bolts:
   - id: "status_metrics"
     className: "com.digitalpebble.stormcrawler.elasticsearch.metrics.StatusMetricsBolt"
     parallelism: 1
-  - id: "store"
-    className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
-    constructorArgs:
-        # exchangeName
-          - "crawler"
-        #routingName
-          - "HtmlPagesToParse"
+  - id: "HTMLStorage"
+    className: "de.hpi.bpStormcrawler.BPFileBolt"
     parallelism: 1
+
 
 
 streams:
@@ -121,9 +117,10 @@ streams:
       streamId: "status"
 
   - from: "index"
-    to: "store"
+    to: "HTMLStorage"
     grouping:
         type: LOCAL_OR_SHUFFLE
         streamId: "storage"
+
 
 

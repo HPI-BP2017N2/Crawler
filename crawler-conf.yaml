@@ -84,3 +84,21 @@ config:
   topology.metrics.consumer.register:
      - class: "org.apache.storm.metric.LoggingMetricsConsumer"
        parallelism.hint: 1
+
+
+
+  http.protocol.implementation: "com.digitalpebble.stormcrawler.protocol.selenium.RemoteDriverProtocol"
+  https.protocol.implementation: "com.digitalpebble.stormcrawler.protocol.selenium.RemoteDriverProtocol"
+  selenium.addresses: "http://localhost:9515"
+
+
+  http.use.cookies: true
+  fetcher.server.delay: 10.0
+  selenium.implicitlyWait: 7000
+  selenium.pageLoadTimeout: 10000
+  selenium.setScriptTimeout: 10000
+  selenium.instances.num: 1
+  selenium.capabilities:
+      takesScreenshot: false
+      loadImages: false
+      javascriptEnabled: true
