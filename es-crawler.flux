@@ -60,6 +60,7 @@ bolts:
     parallelism: 1
 
 
+
 streams:
   - from: "spout"
     to: "partitioner"
