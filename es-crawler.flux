@@ -56,7 +56,7 @@ bolts:
         # exchangeName
           - "crawler"
         #routingName
-          - "HtmlPagesToParse"
+          - "crawledPages"
     parallelism: 1
 
 
