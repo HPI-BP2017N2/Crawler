@@ -4,6 +4,7 @@ import io.latent.storm.rabbitmq.TupleToMessage;
 import lombok.AccessLevel;
 import lombok.Getter;
 import org.apache.storm.tuple.Tuple;
+import org.apache.storm.validation.ConfigValidationAnnotations;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.slf4j.Logger;
@@ -32,7 +33,12 @@ public class TupleToMessageCrawler extends TupleToMessage {
 
     @Override
     protected byte[] extractBody(Tuple tuple) {
-        byte[] payload = null;
+
+        if(tuple == null){
+            getLogger().error("Tuple was NULL");
+            return null;
+        }
+
         try {
             XContentBuilder builder = XContentFactory.jsonBuilder().startObject();
             for (String element : tuple.getFields()){
@@ -40,11 +46,11 @@ public class TupleToMessageCrawler extends TupleToMessage {
             }
 
             builder.endObject();
-            payload = builder.string().getBytes();
+            return builder.string().getBytes();
         } catch (IOException e) {
             getLogger().error("Could not convert tuple to a JSON String");
+            return null;
         }
-        return payload;
     }
 
     @Override

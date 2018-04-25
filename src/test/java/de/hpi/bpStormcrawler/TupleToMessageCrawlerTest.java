@@ -8,6 +8,7 @@ import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Date;
 import java.util.Random;
 
 import static org.mockito.Mockito.*;
@@ -25,16 +26,24 @@ public class TupleToMessageCrawlerTest {
 
     @Test
     public void extractBody() {
-        //Test a strange tuple if it is converted in JSON
-        //
-        TupleToMessageCrawler scheme = spy(new TupleToMessageCrawler(randomString, randomString));
+        //Test conversion of regular Tuple to JSON
+
+        TupleToMessageCrawler scheme = new TupleToMessageCrawler(randomString, randomString);
 
         Tuple testTuple = mock(Tuple.class);
 
-        when(testTuple.getFields()).thenReturn(new Fields("test"));
+        Fields fields = new Fields("shopID","fetchedDate","url","content");
+
+        doReturn(fields).when(testTuple).getFields();
+        doReturn(1234L).when(testTuple).getValueByField("shopID");
+        doReturn(new Date(0L)).when(testTuple).getValueByField("fetchedDate");
+        doReturn("http://www.google.de/").when(testTuple).getValueByField("url");
+        doReturn("<html></html>").when(testTuple).getValueByField("content");
+
         byte[] result = scheme.extractBody(testTuple);
 
-        assertNotNull(result);
+        assertEquals("{\"shopID\":1234,\"fetchedDate\":\"1970-01-01T00:00:00.000Z\",\"url\":\"http://www.google.de/\",\"content\":\"<html></html>\"}",new String(result));
+
 
         //TODO Implement further Test Cases
 

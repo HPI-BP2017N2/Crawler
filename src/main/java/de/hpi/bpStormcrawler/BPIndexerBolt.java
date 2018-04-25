@@ -4,6 +4,7 @@ package de.hpi.bpStormcrawler;
 
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
+import java.util.Date;
 import java.util.Map;
 
 import com.digitalpebble.stormcrawler.elasticsearch.bolt.IndexerBolt;
@@ -66,7 +67,7 @@ public class BPIndexerBolt extends IndexerBolt {
         //TODO Think about ack from the IndexerBolt
         //TODO extract the fetchedTime from metadata
 
-        this.collector.emit("storage", tuple, new Values(shopID,System.currentTimeMillis(),normalisedUrl,content));
+        this.collector.emit("storage", tuple, new Values(shopID,new Date(),normalisedUrl,content));
     }
 
     @Override
