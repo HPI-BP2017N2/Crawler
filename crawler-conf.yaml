@@ -84,3 +84,12 @@ config:
   topology.metrics.consumer.register:
      - class: "org.apache.storm.metric.LoggingMetricsConsumer"
        parallelism.hint: 1
+
+ #FinishedShopBolt
+
+ #Interval in sec
+ finishedDomain.update.interval: 60
+
+ #Interval in min
+ #Set Domain as finished when after threshold no page was fetched
+ finishedDomain.waitingThreshold: 3
