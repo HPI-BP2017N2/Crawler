@@ -88,8 +88,8 @@ config:
  #FinishedShopBolt
 
  #Interval in sec
- finishedDomain.update.interval: 60
+  finishedDomain.update.interval: 60
 
  #Interval in min
  #Set Domain as finished when after threshold no page was fetched
- finishedDomain.waitingThreshold: 3
+  finishedDomain.waitingThreshold: 3
