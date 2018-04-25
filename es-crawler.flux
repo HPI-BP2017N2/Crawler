@@ -50,13 +50,27 @@ bolts:
   - id: "status_metrics"
     className: "com.digitalpebble.stormcrawler.elasticsearch.metrics.StatusMetricsBolt"
     parallelism: 1
-  - id: "store"
+
+  - id: "finishedDomain"
+    className: "de.hpi.bpStormcrawler.BPFinishedDomainBolt"
+    parallelism: 1
+
+  - id: "HTMLstore"
     className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
     constructorArgs:
         # exchangeName
           - "crawler"
         #routingName
           - "HtmlPagesToParse"
+    parallelism: 1
+
+ - id: "finishedShopStore"
+    className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
+    constructorArgs:
+        # exchangeName
+          - "crawler"
+        #routingName
+          - "DoneMessagesToMatch"
     parallelism: 1
 
 
@@ -71,6 +85,11 @@ streams:
     to: "status_metrics"
     grouping:
       type: SHUFFLE
+
+  - from: "spout"
+      to: "finishedDomain"
+      grouping:
+        type: SHUFFLE
 
   - from: "partitioner"
     to: "fetcher"
@@ -122,9 +141,13 @@ streams:
       streamId: "status"
 
   - from: "index"
-    to: "store"
+    to: "HTMLstore"
     grouping:
         type: LOCAL_OR_SHUFFLE
         streamId: "storage"
 
-
+  - from: "finishedDomain"
+     to: "HTMLstore"
+     grouping:
+         type: LOCAL_OR_SHUFFLE
+         streamId: "finishedDomainNotification"
