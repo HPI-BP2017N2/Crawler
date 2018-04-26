@@ -16,11 +16,19 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.TupleUtils;
 import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.QueryBuilders.*;
+import org.elasticsearch.search.aggregations.Aggregation;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -73,10 +81,10 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         // we just want to trigger a new search when the input is a tick tuple
         if (!TupleUtils.isTick(tuple)) {
             return;
-        }
-
-        for (Long shopID : queryShopsAboveThreshold()) {
-            collector.emit("finishedDomainNotification", tuple, new Values(1234L));
+        }else{
+            for (Long shopID : queryShopsAboveThreshold()) {
+                collector.emit("finishedDomainNotification", tuple, new Values(shopID));
+            }
         }
 
 
@@ -84,12 +92,9 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     }
 
     private List<Long> queryShopsAboveThreshold() {
-        /*SearchRequest request = new SearchRequest(getIndexName()).types(getDocType());
-        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 
         //Actual Query
         //More in Java: Give me the oldest tuple per hostname with the latest fetchDate
-
 
         //More on Elasticsearch:
         //Give me one tuple per hostname where the latest fetchDate is bigger than fetchDate + threshold
@@ -98,15 +103,78 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         //sourceBuilder.query(QueryBuilders.termQuery("status", s.name()));
         //TODO Implement query
 
-        sourceBuilder.from(0);
+        //TODO Implement query submission
+
+        //TODO Implement query analyze
+
+
+
+        SearchRequest request = new SearchRequest(getIndexName()).types(getDocType());
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+
+        //REST QUERY
+        //POST status/_search
+        //{
+        //  "aggs": {
+        //      "hostName" :{
+        //        "terms": {
+        //          "field": "metadata.hostname"
+        //        },
+        //
+        //        "aggs": {
+        //          "numberDiscoveredLinks": {
+        //            "filter": {
+        //              "term": {
+        //                "status": "DISCOVERED"
+        //              }
+        //            },
+        //            "aggs": {
+        //              "countOfDiscoveredLinks": {
+        //                "value_count": {
+        //                  "field": "status"
+        //                }
+        //
+        //              }
+        //            }
+        //          }
+        //        }
+        //      }
+        //    }
+        //    ,"size": 0
+        //}
+
+        AggregationBuilder aggregation =
+                AggregationBuilders
+                        .terms("hostName")
+                        .field("metadata.hostname")
+                        .subAggregation(
+                                AggregationBuilders
+                                        .filter("discoveredLinks",QueryBuilders.termQuery("status","DISCOVERED"))
+                                        .subAggregation(AggregationBuilders.cardinality("status"))
+                        );
+        sourceBuilder.aggregation(aggregation);
         sourceBuilder.size(0);
         sourceBuilder.explain(false);
         request.source(sourceBuilder);
 
-        //TODO Implement query submission
+        long start = System.currentTimeMillis();
 
-        //TODO Implement query analyze
-        */
+        SearchResponse response;
+        try{
+            response = connection.getClient().search(request);
+        } catch (IOException e){
+            LOG.error("Exception caught when quering Elasticsearch in finished Domain Bolt ",e);
+            collector.reportError(e);
+            return null;
+        }
+
+        long end = System.currentTimeMillis();
+
+        LOG.info("Query returned in {} msec", end - start);
+
+        for (Aggregation shop : response.getAggregations().asList()) {
+
+        }
 
         List<Long> l = new ArrayList<>();
         l.add(1234L);

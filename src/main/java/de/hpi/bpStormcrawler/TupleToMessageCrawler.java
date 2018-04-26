@@ -44,13 +44,17 @@ public class TupleToMessageCrawler extends TupleToMessage {
             for (String element : tuple.getFields()){
                 builder.field(element,tuple.getValueByField(element));
             }
-
             builder.endObject();
             return builder.string().getBytes();
         } catch (IOException e) {
             getLogger().error("Could not convert tuple to a JSON String");
             return null;
         }
+    }
+
+    @Override
+    protected String specifyContentType(Tuple input) {
+        return "application/json";
     }
 
     @Override
