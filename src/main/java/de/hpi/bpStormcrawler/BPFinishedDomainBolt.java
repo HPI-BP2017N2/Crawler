@@ -127,7 +127,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("finishedDomainNotification", new Fields("shopID"));
+        declarer.declareStream("finishedDomainNotification", new Fields("shopId"));
 
     }
 }

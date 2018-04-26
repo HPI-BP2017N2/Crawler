@@ -64,7 +64,7 @@ bolts:
           - "crawledPages"
     parallelism: 1
 
- - id: "finishedShopStore"
+  - id: "finishedShopStore"
     className: "de.hpi.bpStormcrawler.BPRabbitMQBolt"
     constructorArgs:
         # exchangeName
@@ -87,8 +87,8 @@ streams:
       type: SHUFFLE
 
   - from: "spout"
-      to: "finishedDomain"
-      grouping:
+    to: "finishedDomain"
+    grouping:
         type: SHUFFLE
 
   - from: "partitioner"
@@ -147,7 +147,7 @@ streams:
         streamId: "storage"
 
   - from: "finishedDomain"
-     to: "HTMLstore"
-     grouping:
-         type: LOCAL_OR_SHUFFLE
-         streamId: "finishedDomainNotification"
+    to: "finishedShopStore"
+    grouping:
+        type: LOCAL_OR_SHUFFLE
+        streamId: "finishedDomainNotification"
