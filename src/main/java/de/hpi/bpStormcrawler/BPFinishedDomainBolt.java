@@ -1,7 +1,6 @@
 package de.hpi.bpStormcrawler;
 
 import com.digitalpebble.stormcrawler.elasticsearch.ElasticSearchConnection;
-import com.digitalpebble.stormcrawler.elasticsearch.metrics.StatusMetricsBolt;
 import com.digitalpebble.stormcrawler.util.ConfUtils;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,12 +15,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.apache.storm.utils.TupleUtils;
 import org.elasticsearch.action.search.SearchRequest;
-import org.elasticsearch.action.search.SearchRequestBuilder;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryBuilders.*;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.filter.Filter;
@@ -42,7 +37,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     private static final String ESStatusIndexNameParamName = "es.status.index.name";
     private static final String ESStatusDocTypeParamName = "es.status.doc.type";
 
-    private Map<String, Boolean> finishedSentDomains;
+    private Map<String, Boolean> finishedDomains;
     private String indexName;
     private String docType;
 
@@ -54,17 +49,19 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     private ElasticSearchConnection connection;
 
     @Override
+    @SuppressWarnings("unchecked")
     public void prepare(Map stormConf, TopologyContext topologyContext, OutputCollector outputCollector) {
+
         setCollector(outputCollector);
 
+        //Is currently not used as the getComponentConfiguration is called before
         setUpdateInterval(ConfUtils.getInt(stormConf,"finishedDomain.update.interval",60));
-        setIndexName(ConfUtils.getString(stormConf, ESStatusIndexNameParamName,
-                "status"));
-        setDocType(ConfUtils.getString(stormConf, ESStatusDocTypeParamName,
-                "doc"));
+
+        setIndexName(ConfUtils.getString(stormConf, ESStatusIndexNameParamName, "status"));
+        setDocType(ConfUtils.getString(stormConf, ESStatusDocTypeParamName,"doc"));
         setWaitingThresholdDomain(ConfUtils.getInt(stormConf,"finishedDomain.waitingThreshold",100));
 
-        setFinishedSentDomains(new Hashtable<>());
+        setFinishedDomains(new Hashtable<>());
 
         try {
             setConnection(ElasticSearchConnection.getConnection(stormConf, ESBoltType));
@@ -89,22 +86,81 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
                 LOG.info("Emmited Tuple with shopName {} and the timestamp {} ",shopName,currentTimestamp);
             }
         }
-
-        //TODO: Iteration 2: Query: Give me one tuple per hostname where there are no tuples with status DISCOVERED
     }
 
     private List<String> queryShopsAboveThreshold() {
+        SearchRequest request = buildAggregationQuery(queryDomainsWithUrlsDiscovered());
+        SearchResponse response = queryElasticSearch(request);
+        return extractNewFinishedDomains(response);
+    }
 
-        //Actual Query
-        //More in Java: Give me the oldest tuple per hostname with the latest fetchDate
+    private List<String> extractNewFinishedDomains(SearchResponse response) {
+        if (response != null) {
+            Terms domains = response.getAggregations().get("hostName");
+            List<String> resultList = new ArrayList<>();
 
-        //More on Elasticsearch:
-        //Give me one tuple per hostname where the latest fetchDate is bigger than fetchDate + threshold
+            if (domains != null) {
+                for (Terms.Bucket domain : domains.getBuckets()) {
+                    if (isNewFinishedDomain(domain)) {
+                        resultList.add(domain.getKeyAsString());
+                    }
+                }
+            } else {
+                LOG.warn("Couldn't find matching hostnames in SearchResponse");
+            }
+            return resultList;
+        } else {
+            return null;
+        }
+    }
 
 
+    private Boolean isNewFinishedDomain(Terms.Bucket domain) {
+        Filter filter = domain.getAggregations().get("discoveredLinks");
+        String domainName = domain.getKeyAsString();
+        if(filter.getDocCount() == 0){
+            if(!getFinishedDomains().getOrDefault(domainName,false))
+            {
+                getFinishedDomains().put(domainName,true);
+                LOG.info("ADDED key [{}], doc_count [{}]", domainName, filter.getDocCount());
+                return true;
+            } else{
+                LOG.info("SKIPPED key [{}], doc_count [{}] because already emmited", domainName, filter.getDocCount());
+            }
+        }else{
+            LOG.info("SKIPPED key [{}], doc_count [{}] because criteria not yet met", domainName, filter.getDocCount());
+        }
+        return false;
+    }
+
+    private SearchResponse queryElasticSearch (SearchRequest request){
+        SearchResponse response;
+        long start = System.currentTimeMillis();
+
+        try{
+            response = connection.getClient().search(request);
+        } catch (IOException e){
+            LOG.error("Exception caught when quering Elasticsearch in finished Domain Bolt ",e);
+            collector.reportError(e);
+            return null;
+        }
+        long end = System.currentTimeMillis();
+
+        LOG.info("Query returned in {} msec", end - start);
+        return response;
+    }
+
+    private SearchRequest buildAggregationQuery(AggregationBuilder query) {
         SearchRequest request = new SearchRequest(getIndexName()).types(getDocType());
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.aggregation(query);
+        sourceBuilder.size(0);
+        sourceBuilder.explain(false);
+        request.source(sourceBuilder);
+        return request;
+    }
 
+    private AggregationBuilder queryDomainsWithUrlsDiscovered() {
         //REST QUERY
         //POST status/_search
         //{
@@ -120,14 +176,6 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         //              "term": {
         //                "status": "DISCOVERED"
         //              }
-        //            },
-        //            "aggs": {
-        //              "countOfDiscoveredLinks": {
-        //                "value_count": {
-        //                  "field": "status"
-        //                }
-        //
-        //              }
         //            }
         //          }
         //        }
@@ -135,64 +183,13 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         //    }
         //    ,"size": 0
         //}
-
-        AggregationBuilder aggregation =
-                AggregationBuilders
-                        .terms("hostName")
-                        .field("metadata.hostname")
-                        .subAggregation(
-                                AggregationBuilders
-                                        .filter("discoveredLinks",QueryBuilders.termQuery("status","DISCOVERED"))
-                        );
-        sourceBuilder.aggregation(aggregation);
-        sourceBuilder.size(0);
-        sourceBuilder.explain(false);
-        request.source(sourceBuilder);
-
-        long start = System.currentTimeMillis();
-
-        SearchResponse response;
-        try{
-            response = connection.getClient().search(request);
-        } catch (IOException e){
-            LOG.error("Exception caught when quering Elasticsearch in finished Domain Bolt ",e);
-            collector.reportError(e);
-            return null;
-        }
-
-        long end = System.currentTimeMillis();
-
-        LOG.info("Query returned in {} msec", end - start);
-
-        Terms domains = response.getAggregations().get("hostName");
-
-        List<String> resultList = new ArrayList<>();
-
-        if(domains != null)
-        {
-            for (Terms.Bucket domain : domains.getBuckets()) {
-                Filter filter = domain.getAggregations().get("discoveredLinks");
-                String domainName = domain.getKeyAsString();
-                if(filter.getDocCount() == 0){
-                    if(!getFinishedSentDomains().getOrDefault(domainName,false))
-                    {
-                        resultList.add(domain.getKeyAsString());
-                        getFinishedSentDomains().put(domainName,true);
-                        LOG.info("ADDED key [{}], doc_count [{}]", domainName, filter.getDocCount());
-                    } else{
-                        LOG.info("SKIPPED key [{}], doc_count [{}] because already emmited", domainName, filter.getDocCount());
-                    }
-
-                }else{
-                    LOG.info("SKIPPED key [{}], doc_count [{}] because criteria not yet met", domainName, filter.getDocCount());
-                }
-            }
-        }
-        else{
-            LOG.warn("Response from Elasticsearch couldn't find matching hostnames");
-        }
-
-        return resultList;
+        return AggregationBuilders
+                .terms("hostName")
+                .field("metadata.hostname")
+                .subAggregation(
+                        AggregationBuilders
+                                .filter("discoveredLinks", QueryBuilders.termQuery("status","DISCOVERED"))
+                );
     }
 
     public Map<String, Object> getComponentConfiguration() {
@@ -211,6 +208,5 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         declarer.declareStream("finishedDomainNotification", new Fields("shopName", "finishedDate"));
-
     }
 }
