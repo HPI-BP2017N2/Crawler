@@ -47,7 +47,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     private String indexName;
     private String docType;
 
-    private int updateInterval;
+    private int updateInterval = 30;
     private int waitingThresholdDomain;
 
     private OutputCollector collector;
@@ -63,7 +63,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
                 "status"));
         setDocType(ConfUtils.getString(stormConf, ESStatusDocTypeParamName,
                 "doc"));
-        setWaitingThresholdDomain(ConfUtils.getInt(stormConf,"finishedDomain.waitingThreshold",3));
+        setWaitingThresholdDomain(ConfUtils.getInt(stormConf,"finishedDomain.waitingThreshold",100));
 
         try {
             setConnection(ElasticSearchConnection.getConnection(stormConf, ESBoltType));
@@ -79,7 +79,6 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         //Discard other incomming tuples but acknowledge them
         getCollector().ack(tuple);
 
-
         // this bolt can be connected to anything
         // we just want to trigger a new search when the input is a tick tuple
         if (TupleUtils.isTick(tuple)) {
@@ -87,7 +86,6 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
                 collector.emit("finishedDomainNotification", tuple, new Values(shopName, new Date()));
             }
         }
-
 
         //TODO: Iteration 2: Query: Give me one tuple per hostname where there are no tuples with status DISCOVERED
     }
@@ -142,7 +140,6 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
                         .subAggregation(
                                 AggregationBuilders
                                         .filter("discoveredLinks",QueryBuilders.termQuery("status","DISCOVERED"))
-                                        .subAggregation(AggregationBuilders.cardinality("status"))
                         );
         sourceBuilder.aggregation(aggregation);
         sourceBuilder.size(0);
@@ -164,25 +161,35 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
 
         LOG.info("Query returned in {} msec", end - start);
 
-        Terms domains = response.getAggregations().get("hostname");
+        Terms domains = response.getAggregations().get("hostName");
 
         List<String> resultList = new ArrayList<>();
 
-        for (Terms.Bucket domain : domains.getBuckets()) {
-            Filter filter = domain.getAggregations().get("discoveredLinks");
-            if(filter.getDocCount() == 0){
-                 resultList.add(domain.getKeyAsString());
-                 LOG.info("ADDED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
-            }else{
-                LOG.info("SKIPPED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+        if(domains != null)
+        {
+            for (Terms.Bucket domain : domains.getBuckets()) {
+                Filter filter = domain.getAggregations().get("discoveredLinks");
+                if(filter.getDocCount() == 0){
+                    resultList.add(domain.getKeyAsString());
+                    LOG.info("ADDED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+                }else{
+                    LOG.info("SKIPPED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+                }
             }
+
         }
+        else{
+            LOG.warn("Response from Elasticsearch couldn't find matching hostnames");
+        }
+
         return resultList;
     }
 
     public Map<String, Object> getComponentConfiguration() {
         Config conf = new Config();
         conf.put("topology.tick.tuple.freq.secs", getUpdateInterval());
+        LOG.info("Set update Interval of Tick Tuples to {}",getUpdateInterval());
+        //TODO Implement that it gets the frequency from the config file
         return conf;
     }
 
