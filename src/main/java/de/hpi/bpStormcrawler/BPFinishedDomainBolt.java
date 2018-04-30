@@ -24,12 +24,15 @@ import org.elasticsearch.index.query.QueryBuilders.*;
 import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 @Getter(AccessLevel.PRIVATE)
@@ -79,11 +82,9 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
 
         // this bolt can be connected to anything
         // we just want to trigger a new search when the input is a tick tuple
-        if (!TupleUtils.isTick(tuple)) {
-            return;
-        }else{
-            for (Long shopID : queryShopsAboveThreshold()) {
-                collector.emit("finishedDomainNotification", tuple, new Values(shopID));
+        if (TupleUtils.isTick(tuple)) {
+            for (String shopName : queryShopsAboveThreshold()) {
+                collector.emit("finishedDomainNotification", tuple, new Values(shopName, new Date()));
             }
         }
 
@@ -91,22 +92,13 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         //TODO: Iteration 2: Query: Give me one tuple per hostname where there are no tuples with status DISCOVERED
     }
 
-    private List<Long> queryShopsAboveThreshold() {
+    private List<String> queryShopsAboveThreshold() {
 
         //Actual Query
         //More in Java: Give me the oldest tuple per hostname with the latest fetchDate
 
         //More on Elasticsearch:
         //Give me one tuple per hostname where the latest fetchDate is bigger than fetchDate + threshold
-
-
-        //sourceBuilder.query(QueryBuilders.termQuery("status", s.name()));
-        //TODO Implement query
-
-        //TODO Implement query submission
-
-        //TODO Implement query analyze
-
 
 
         SearchRequest request = new SearchRequest(getIndexName()).types(getDocType());
@@ -172,14 +164,20 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
 
         LOG.info("Query returned in {} msec", end - start);
 
-        for (Aggregation shop : response.getAggregations().asList()) {
+        Terms domains = response.getAggregations().get("hostname");
 
+        List<String> resultList = new ArrayList<>();
+
+        for (Terms.Bucket domain : domains.getBuckets()) {
+            Filter filter = domain.getAggregations().get("discoveredLinks");
+            if(filter.getDocCount() == 0){
+                 resultList.add(domain.getKeyAsString());
+                 LOG.info("ADDED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+            }else{
+                LOG.info("SKIPPED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+            }
         }
-
-        List<Long> l = new ArrayList<>();
-        l.add(1234L);
-        l.add(4321L);
-        return l;
+        return resultList;
     }
 
     public Map<String, Object> getComponentConfiguration() {
@@ -195,7 +193,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
-        declarer.declareStream("finishedDomainNotification", new Fields("shopId"));
+        declarer.declareStream("finishedDomainNotification", new Fields("shopName", "finishedDate"));
 
     }
 }
