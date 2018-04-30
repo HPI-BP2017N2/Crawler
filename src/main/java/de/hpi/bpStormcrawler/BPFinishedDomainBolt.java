@@ -31,10 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
 @Getter(AccessLevel.PRIVATE)
 @Setter(AccessLevel.PRIVATE)
 
@@ -44,6 +42,7 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
     private static final String ESStatusIndexNameParamName = "es.status.index.name";
     private static final String ESStatusDocTypeParamName = "es.status.doc.type";
 
+    private Map<String, Boolean> finishedSentDomains;
     private String indexName;
     private String docType;
 
@@ -65,6 +64,8 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
                 "doc"));
         setWaitingThresholdDomain(ConfUtils.getInt(stormConf,"finishedDomain.waitingThreshold",100));
 
+        setFinishedSentDomains(new Hashtable<>());
+
         try {
             setConnection(ElasticSearchConnection.getConnection(stormConf, ESBoltType));
         }catch(Exception e){
@@ -83,7 +84,9 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         // we just want to trigger a new search when the input is a tick tuple
         if (TupleUtils.isTick(tuple)) {
             for (String shopName : queryShopsAboveThreshold()) {
-                collector.emit("finishedDomainNotification", tuple, new Values(shopName, new Date()));
+                Date currentTimestamp = new Date();
+                collector.emit("finishedDomainNotification", tuple, new Values(shopName, currentTimestamp));
+                LOG.info("Emmited Tuple with shopName {} and the timestamp {} ",shopName,currentTimestamp);
             }
         }
 
@@ -169,14 +172,21 @@ public class BPFinishedDomainBolt extends BaseRichBolt{
         {
             for (Terms.Bucket domain : domains.getBuckets()) {
                 Filter filter = domain.getAggregations().get("discoveredLinks");
+                String domainName = domain.getKeyAsString();
                 if(filter.getDocCount() == 0){
-                    resultList.add(domain.getKeyAsString());
-                    LOG.info("ADDED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+                    if(!getFinishedSentDomains().getOrDefault(domainName,false))
+                    {
+                        resultList.add(domain.getKeyAsString());
+                        getFinishedSentDomains().put(domainName,true);
+                        LOG.info("ADDED key [{}], doc_count [{}]", domainName, filter.getDocCount());
+                    } else{
+                        LOG.info("SKIPPED key [{}], doc_count [{}] because already emmited", domainName, filter.getDocCount());
+                    }
+
                 }else{
-                    LOG.info("SKIPPED key [{}], doc_count [{}]", domain.getKeyAsString(), filter.getDocCount());
+                    LOG.info("SKIPPED key [{}], doc_count [{}] because criteria not yet met", domainName, filter.getDocCount());
                 }
             }
-
         }
         else{
             LOG.warn("Response from Elasticsearch couldn't find matching hostnames");
