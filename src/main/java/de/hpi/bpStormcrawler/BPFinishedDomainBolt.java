@@ -22,36 +22,24 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter(AccessLevel.PRIVATE)
-@Setter(AccessLevel.PRIVATE)
+@Setter
 
-public class BPFinishedDomainBolt extends BaseRichBolt{
+public class BPFinishedDomainBolt extends BaseRichBolt {
+
     private final Logger LOG = LoggerFactory.getLogger(this.getClass());
-
-
     private Map<String, Boolean> finishedDomains;
-
-
     private BPStatusElasticSearch elasticSearch;
-
     private int updateInterval = 30;
     private int waitingThresholdDomain;
-
     private OutputCollector collector;
-
-
 
     @Override
     @SuppressWarnings("unchecked")
     public void prepare(Map stormConf, TopologyContext topologyContext, OutputCollector outputCollector) {
-
         setCollector(outputCollector);
-
         setElasticSearch(new BPStatusElasticSearch(stormConf));
-
         setFinishedDomains(new Hashtable<>());
-
     }
-
 
 
     @Override

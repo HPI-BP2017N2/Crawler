@@ -41,6 +41,16 @@ public class BPStatusElasticSearch {
         setDomainsWithUrlsDiscoveredSearchRequest(buildDomainsWithStatusDiscoveredRequest());
     }
 
+    public List<String> getFinishedDomains() throws IOException {
+        SearchResponse response = getConnection().getClient().search(getDomainsWithUrlsDiscoveredSearchRequest());
+        return extractFinishedDomains(response);
+    }
+
+    public void close(){
+        getConnection().close();
+    }
+
+
     private void getConnectionObject(Map<String, Object> stormConf) {
         setConnection(ElasticSearchConnection.getConnection(stormConf, ESBoltType));
     }
@@ -48,13 +58,6 @@ public class BPStatusElasticSearch {
     private void loadConfiguration(Map<String, Object> stormConf) {
         setIndexName(ConfUtils.getString(stormConf, ESStatusIndexNameParamName, "status"));
         setDocType(ConfUtils.getString(stormConf, ESStatusDocTypeParamName,"doc"));
-
-
-    }
-
-    public List<String> getFinishedDomains() throws IOException {
-        SearchResponse response = getConnection().getClient().search(getDomainsWithUrlsDiscoveredSearchRequest());
-        return extractFinishedDomains(response);
     }
 
     private List<String> extractFinishedDomains(SearchResponse response) {
@@ -119,8 +122,6 @@ public class BPStatusElasticSearch {
                 );
     }
 
-    public void close(){
-        getConnection().close();
-    }
+
 
 }
