@@ -22,8 +22,8 @@ config:
   # metadata to transfer to the outlinks
   # used by Fetcher for redirections, sitemapparser, etc...
   # these are also persisted for the parent document (see below)
-  # metadata.transfer:
-  # - customMetadataName
+  metadata.transfer:
+    - shopId
 
   # lists the metadata to persist to storage
   # these are not transfered to the outlinks
