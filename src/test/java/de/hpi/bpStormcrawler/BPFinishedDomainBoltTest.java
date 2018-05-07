@@ -47,7 +47,7 @@ public class BPFinishedDomainBoltTest {
         Tuple tickTuple = MockTupleHelpers.mockTickTuple();
 
         List<String> finishedDomains = new ArrayList<>();
-        finishedDomains.add("google.com");
+        finishedDomains.add("1234");
         doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
         bolt.execute(tickTuple);
         verify(collector,times(1)).emit(anyString(),any(Tuple.class),any());
@@ -57,12 +57,12 @@ public class BPFinishedDomainBoltTest {
     public void emitNoTupleWhenTupleOfFinishedDomainWasAlreadyEmitted() throws IOException {
         Tuple tickTuple = MockTupleHelpers.mockTickTuple();
         List<String> finishedDomains = new ArrayList<>();
-        finishedDomains.add("google.com");
-        finishedDomains.add("alternate.com");
+        finishedDomains.add("1234");
+        finishedDomains.add("5678");
         doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
         bolt.execute(tickTuple);
 
-        finishedDomains.add("idealo.com");
+        finishedDomains.add("5432");
         doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
         bolt.execute(tickTuple);
         verify(collector,times(3)).emit(anyString(),any(Tuple.class),any());

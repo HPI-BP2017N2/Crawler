@@ -62,13 +62,13 @@ public class BPIndexerBolt extends IndexerBolt {
             LOG.error("Could not get shopID", e);
         }
 
-        
+
         //BP: added Content Field
         String content = new String(tuple.getBinaryByField("content"));
 
 
         //TODO Think about ack from the IndexerBolt
-        //TODO extract the fetchedTime from metadata
+        //TODO extract the fetchedTime from metadata (the field name is date)
 
         this.collector.emit("storage", tuple, new Values(shopID,new Date(),normalisedUrl,content));
     }

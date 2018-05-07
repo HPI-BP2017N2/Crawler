@@ -51,10 +51,11 @@ public class BPFinishedDomainBolt extends BaseRichBolt {
         // we just want to trigger a new search when the input is a tick tuple
         if (TupleUtils.isTick(tuple)) {
             try {
-                for (String shopName : getRecentlyFinishedDomains()) {
+                for (String domain : getRecentlyFinishedDomains()) {
                     Date currentTimestamp = new Date();
-                    collector.emit("finishedDomainNotification", tuple, new Values(shopName, currentTimestamp));
-                    LOG.info("Emmited Tuple with shopName {} and the timestamp {} ",shopName,currentTimestamp);
+                    Long shopId = Long.parseLong(domain);
+                    collector.emit("finishedDomainNotification", tuple, new Values(shopId, currentTimestamp));
+                    LOG.info("Emmited Tuple with domain {} and the timestamp {} ",shopId,currentTimestamp);
                 }
             } catch (IOException e) {
                 getLOG().error("Exception caught when quering Elasticsearch in finished Domain Bolt ",e);

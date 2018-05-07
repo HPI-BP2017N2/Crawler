@@ -61,7 +61,7 @@ public class BPStatusElasticSearch {
     }
 
     private List<String> extractFinishedDomains(SearchResponse response) {
-        Terms domains = response.getAggregations().get("hostName");
+        Terms domains = response.getAggregations().get("host");
         List<String> resultList = new ArrayList<>();
         if (domains != null) {
             for (Terms.Bucket domain : domains.getBuckets()) {
@@ -114,8 +114,8 @@ public class BPStatusElasticSearch {
         //    ,"size": 0
         //}
         return AggregationBuilders
-                .terms("hostName")
-                .field("metadata.hostname")
+                .terms("host")
+                .field("metadata.shopId")
                 .subAggregation(
                         AggregationBuilders
                                 .filter("discoveredLinks", QueryBuilders.termQuery("status","DISCOVERED"))
