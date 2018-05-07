@@ -52,11 +52,8 @@ public class BPIndexerBolt extends IndexerBolt {
         String normalisedUrl = valueForURL(tuple);
         Metadata metadata = (Metadata)tuple.getValueByField("metadata");
 
-        LOG.info(normalisedUrl);
-        LOG.info(metadata.toString());
 
         long shopID = 0L;
-
         try{
             shopID = Long.parseLong(metadata.getFirstValue("shopId"));
         }
@@ -65,11 +62,9 @@ public class BPIndexerBolt extends IndexerBolt {
             LOG.error("Could not get shopID", e);
         }
 
-
-
+        
         //BP: added Content Field
         String content = new String(tuple.getBinaryByField("content"));
-
 
 
         //TODO Think about ack from the IndexerBolt
