@@ -44,7 +44,7 @@ public class BPIndexerBolt extends IndexerBolt {
     //TODO: Test Method
     @Override
     public void execute(Tuple tuple) {
-
+        super.execute(tuple);
 
 
         // Distinguish the value used for indexing
@@ -65,7 +65,6 @@ public class BPIndexerBolt extends IndexerBolt {
             LOG.error("Could not get shopID", e);
         }
 
-        super.execute(tuple);
 
 
         //BP: added Content Field
