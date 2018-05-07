@@ -67,5 +67,10 @@ public class TupleToMessageCrawler extends TupleToMessage {
         return getRoutingName(); // rabbitmq java client library treats "" as no routing key
     }
 
+    @Override
+    protected boolean specifyMessagePersistence(Tuple input) {
+        return true;
+    }
+
 
 }

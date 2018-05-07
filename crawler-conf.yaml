@@ -79,6 +79,7 @@ config:
   - parse.keywords=keywords
   - parse.description=description
   - domain=domain
+  - shopId=shopId
 
   # Metrics consumers:
   topology.metrics.consumer.register:

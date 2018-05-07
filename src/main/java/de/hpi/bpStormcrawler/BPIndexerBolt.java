@@ -19,6 +19,8 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 
 import com.digitalpebble.stormcrawler.Metadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Sends documents to ElasticSearch. Indexes all the fields from the tuples or a
@@ -30,6 +32,7 @@ import com.digitalpebble.stormcrawler.Metadata;
 
 public class BPIndexerBolt extends IndexerBolt {
     private OutputCollector collector;
+    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
 
     @Override
@@ -38,25 +41,31 @@ public class BPIndexerBolt extends IndexerBolt {
         setCollector(collector);
     }
 
+    //TODO: Test Method
     @Override
     public void execute(Tuple tuple) {
-        super.execute(tuple);
+
+
 
         // Distinguish the value used for indexing
         // from the one used for the status
         String normalisedUrl = valueForURL(tuple);
+        Metadata metadata = (Metadata)tuple.getValueByField("metadata");
 
+        LOG.info(normalisedUrl);
+        LOG.info(metadata.toString());
 
-        long shopID = 1234L;
+        long shopID = 0L;
 
-        //TODO: Implement shopID
-        /*try{
-            shopID = tuple.getLongByField("shopID");
+        try{
+            shopID = Long.parseLong(metadata.getFirstValue("shopId"));
         }
         catch (Exception e)
         {
             LOG.error("Could not get shopID", e);
-        }*/
+        }
+
+        super.execute(tuple);
 
 
         //BP: added Content Field
@@ -73,7 +82,7 @@ public class BPIndexerBolt extends IndexerBolt {
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         super.declareOutputFields(declarer);
-        declarer.declareStream("storage", new Fields("shopID", "fetchedDate", "url","content"));
+        declarer.declareStream("storage", new Fields("shopId", "fetchedDate", "url","content"));
     }
 
 
