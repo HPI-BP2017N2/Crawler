@@ -41,7 +41,6 @@ public class BPIndexerBolt extends IndexerBolt {
         setCollector(collector);
     }
 
-    //TODO: Test Method
     @Override
     public void execute(Tuple tuple) {
         super.execute(tuple);
@@ -67,7 +66,6 @@ public class BPIndexerBolt extends IndexerBolt {
         String content = new String(tuple.getBinaryByField("content"));
 
 
-        //TODO Think about ack from the IndexerBolt
         //TODO extract the fetchedTime from metadata (the field name is date)
 
         this.collector.emit("storage", tuple, new Values(shopID,new Date(),normalisedUrl,content));

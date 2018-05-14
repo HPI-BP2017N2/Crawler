@@ -98,6 +98,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>com.google.oauth-client</groupId>
+			<artifactId>google-oauth-client</artifactId>
+			<version>1.23.0</version>
+		</dependency>
+
+		<dependency>
 			<groupId>io.latent</groupId>
 			<artifactId>storm-rabbitmq</artifactId>
 			<version>1.0.0</version>
