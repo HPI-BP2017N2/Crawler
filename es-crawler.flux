@@ -70,7 +70,7 @@ bolts:
         # exchangeName
           - "crawler"
         #routingName
-          - "DoneMessagesToMatch"
+          - "doneMessagesToMatch"
     parallelism: 1
 
 
