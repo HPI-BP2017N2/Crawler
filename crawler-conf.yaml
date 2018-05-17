@@ -10,10 +10,10 @@ config:
   topology.max.spout.pending: 100
   topology.debug: false
 
-  fetcher.threads.number: 50
+  fetcher.threads.number: ${fetcher.threads}
 
   # give 2gb to the workers
-  worker.heap.memory.mb: 2048
+  worker.heap.memory.mb: ${crawler.memory}
 
   # mandatory when using Flux
   topology.kryo.register:
@@ -44,6 +44,9 @@ config:
   # The fetched page will be trimmed to 65KB in this case
   # Set -1 to disable the limit.
   http.content.limit: -1
+
+  sitemap.discovery: true
+  sitemap.sniffContent: true
 
   # FetcherBolt queue dump => comment out to activate
   # if a file exists on the worker machine with the corresponding port number
@@ -82,6 +85,8 @@ config:
   - parse.description=description
   - domain=domain
   - shopId=shopId
+
+  status.updater.cache.spec: "maximumSize=500000,expireAfterAccess=1h"
 
   # Metrics consumers:
   topology.metrics.consumer.register:

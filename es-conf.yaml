@@ -46,10 +46,10 @@ config:
   es.status.ttl.purgatory: 30
   
   # Min time (in msecs) to allow between 2 successive queries to ES
-  es.status.min.delay.queries: 2000
+  es.status.min.delay.queries: 1000
 
-  es.status.max.buckets: 50
-  es.status.max.urls.per.bucket: 2
+  es.status.max.buckets: 250
+  es.status.max.urls.per.bucket: 4
   # field to group the URLs into buckets
   es.status.bucket.field: "metadata.hostname"
   # field to sort the URLs within a bucket
@@ -58,13 +58,13 @@ config:
   es.status.global.sort.field: "nextFetchDate"
   
   # Delay since previous query date (in secs) after which the nextFetchDate value will be reset
-  es.status.reset.fetchdate.after: -1
+  es.status.reset.fetchdate.after: 300
 
   # CollapsingSpout : limits the deep paging by resetting the start offset for the ES query 
   es.status.max.start.offset: 500
   
   # AggregationSpout : sampling improves the performance on large crawls
-  es.status.sample: false
+  es.status.sample: true
 
   # AggregationSpout (expert): adds this value in mins to the latest date returned in the results and
   # use it as nextFetchDate
