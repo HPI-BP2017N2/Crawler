@@ -58,14 +58,14 @@ config:
   es.status.global.sort.field: "nextFetchDate"
   
   # Delay since previous query date (in secs) after which the nextFetchDate value will be reset
-  es.status.reset.fetchdate.after: 600
+  es.status.reset.fetchdate.after: -1
 
   # CollapsingSpout : limits the deep paging by resetting the start offset for the ES query 
   es.status.max.start.offset: 500
   
   # AggregationSpout : sampling improves the performance on large crawls
   es.status.sample: false
-  
+
   # AggregationSpout (expert): adds this value in mins to the latest date returned in the results and
   # use it as nextFetchDate
   es.status.recentDate.increase: -1
