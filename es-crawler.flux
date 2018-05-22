@@ -61,7 +61,7 @@ bolts:
         # exchangeName
           - "crawler"
         #routingName
-          - "testCrawledPages"
+          - "crawledPages"
     parallelism: 1
 
   - id: "finishedShopStore"
@@ -70,7 +70,7 @@ bolts:
         # exchangeName
           - "crawler"
         #routingName
-          - "testDoneMessagesToMatch"
+          - "doneMessagesToMatch"
     parallelism: 1
 
 
