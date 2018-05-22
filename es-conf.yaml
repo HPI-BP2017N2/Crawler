@@ -64,8 +64,8 @@ config:
   es.status.max.start.offset: 500
   
   # AggregationSpout : sampling improves the performance on large crawls
-  es.status.sample: true
-
+  es.status.sample: false
+  
   # AggregationSpout (expert): adds this value in mins to the latest date returned in the results and
   # use it as nextFetchDate
   es.status.recentDate.increase: -1

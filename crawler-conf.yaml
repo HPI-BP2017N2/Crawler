@@ -86,7 +86,7 @@ config:
   - domain=domain
   - shopId=shopId
 
-  status.updater.cache.spec: "maximumSize=500000,expireAfterAccess=1h"
+  #status.updater.cache.spec: "maximumSize=500000,expireAfterAccess=1h"
 
   # Metrics consumers:
   topology.metrics.consumer.register:
