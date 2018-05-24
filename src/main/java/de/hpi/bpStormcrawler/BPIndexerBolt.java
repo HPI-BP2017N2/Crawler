@@ -11,6 +11,7 @@ import com.digitalpebble.stormcrawler.elasticsearch.bolt.IndexerBolt;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.OutputFieldsDeclarer;
@@ -29,48 +30,33 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("serial")
 @Getter (AccessLevel.PRIVATE)
 @Setter (AccessLevel.PRIVATE)
-
+@Slf4j
 public class BPIndexerBolt extends IndexerBolt {
     private OutputCollector collector;
-    private final Logger LOG = LoggerFactory.getLogger(this.getClass());
 
 
     @Override
     public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
-        super.prepare(conf,context,collector);
+        super.prepare(conf, context, collector);
         setCollector(collector);
     }
 
-    //TODO: Test Method
     @Override
     public void execute(Tuple tuple) {
         super.execute(tuple);
 
-
-        // Distinguish the value used for indexing
-        // from the one used for the status
-        String normalisedUrl = valueForURL(tuple);
-        Metadata metadata = (Metadata)tuple.getValueByField("metadata");
-
-
-        long shopID = 0L;
-        try{
-            shopID = Long.parseLong(metadata.getFirstValue("shopId"));
-        }
-        catch (Exception e)
-        {
-            LOG.error("Could not get shopID", e);
-        }
-
-
-        //BP: added Content Field
+        String uniformedUrl = getUniformedUrl(tuple);
+        Metadata metadata = (Metadata) tuple.getValueByField("metadata");
+        long shopID = Long.parseLong(metadata.getFirstValue("shopId"));
         String content = new String(tuple.getBinaryByField("content"));
 
-
-        //TODO Think about ack from the IndexerBolt
         //TODO extract the fetchedTime from metadata (the field name is date)
 
-        this.collector.emit("storage", tuple, new Values(shopID,new Date(),normalisedUrl,content));
+        getCollector().emit("storage", tuple, new Values(shopID, new Date(), uniformedUrl, content));
+    }
+
+    private String getUniformedUrl(Tuple tuple) {
+        return valueForURL(tuple);
     }
 
     @Override

@@ -30,7 +30,7 @@ public class BPStatusElasticSearch {
     private static final String ESBoltType = "status";
     private static final String ESStatusIndexNameParamName = "es.status.index.name";
     private static final String ESStatusDocTypeParamName = "es.status.doc.type";
-    private SearchRequest domainsWithUrlsDiscoveredSearchRequest;
+    private SearchRequest shopsWithUrlsDiscoveredSearchRequest;
 
     private String indexName;
     private String docType;
@@ -38,12 +38,12 @@ public class BPStatusElasticSearch {
     BPStatusElasticSearch(Map<String, Object> stormConf){
         loadConfiguration(stormConf);
         getConnectionObject(stormConf);
-        setDomainsWithUrlsDiscoveredSearchRequest(buildDomainsWithStatusDiscoveredRequest());
+        setShopsWithUrlsDiscoveredSearchRequest(buildShopsWithStatusDiscoveredRequest());
     }
 
-    public List<String> getFinishedDomains() throws IOException {
-        SearchResponse response = getConnection().getClient().search(getDomainsWithUrlsDiscoveredSearchRequest());
-        return extractFinishedDomains(response);
+    public List<Long> getFinishedShops() throws IOException {
+        SearchResponse response = getConnection().getClient().search(getShopsWithUrlsDiscoveredSearchRequest());
+        return extractFinishedShops(response);
     }
 
     public void close(){
@@ -60,13 +60,13 @@ public class BPStatusElasticSearch {
         setDocType(ConfUtils.getString(stormConf, ESStatusDocTypeParamName,"doc"));
     }
 
-    private List<String> extractFinishedDomains(SearchResponse response) {
-        Terms domains = response.getAggregations().get("host");
-        List<String> resultList = new ArrayList<>();
-        if (domains != null) {
-            for (Terms.Bucket domain : domains.getBuckets()) {
-                if (isFinishedDomain(domain)) {
-                    resultList.add(domain.getKeyAsString());
+    private List<Long> extractFinishedShops(SearchResponse response) {
+        Terms Shops = response.getAggregations().get("host");
+        List<Long> resultList = new ArrayList<>();
+        if (Shops != null) {
+            for (Terms.Bucket Shop : Shops.getBuckets()) {
+                if (isFinishedShop(Shop)) {
+                    resultList.add(Shop.getKeyAsNumber().longValue());
                 }
             }
         }
@@ -74,23 +74,23 @@ public class BPStatusElasticSearch {
 
     }
 
-    private Boolean isFinishedDomain(Terms.Bucket domain) {
-        Filter filter = domain.getAggregations().get("discoveredLinks");
+    private Boolean isFinishedShop(Terms.Bucket Shop) {
+        Filter filter = Shop.getAggregations().get("discoveredLinks");
         return filter.getDocCount() == 0;
     }
 
 
-    private SearchRequest buildDomainsWithStatusDiscoveredRequest() {
+    private SearchRequest buildShopsWithStatusDiscoveredRequest() {
         SearchRequest request = new SearchRequest(getIndexName()).types(getDocType());
         SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-        sourceBuilder.aggregation(filterDomainsWithStatusDiscovered());
+        sourceBuilder.aggregation(filterShopsWithStatusDiscovered());
         sourceBuilder.size(0);
         sourceBuilder.explain(false);
         request.source(sourceBuilder);
         return request;
     }
 
-    private static AggregationBuilder filterDomainsWithStatusDiscovered() {
+    private static AggregationBuilder filterShopsWithStatusDiscovered() {
         //REST QUERY
         //POST status/_search
         //{

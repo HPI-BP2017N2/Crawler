@@ -2,36 +2,32 @@ package de.hpi.bpStormcrawler;
 
 import de.hpi.bpStormcrawler.tools.MockTupleHelpers;
 import org.apache.storm.task.OutputCollector;
-import org.apache.storm.task.TopologyContext;
 import org.apache.storm.tuple.Tuple;
-import org.apache.storm.tuple.TupleImpl;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.verification.VerificationMode;
 
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.Mockito.*;
 
-public class BPFinishedDomainBoltTest {
-    private BPFinishedDomainBolt bolt;
+public class BPFinishedShopBoltTest {
+    private BPFinishedShopBolt bolt;
     private OutputCollector collector;
     private BPStatusElasticSearch elasticSearch;
 
     @Before
     public void setup(){
-        bolt = new BPFinishedDomainBolt();
+        bolt = new BPFinishedShopBolt();
         collector = mock(OutputCollector.class);
         elasticSearch = mock(BPStatusElasticSearch.class);
         bolt.setCollector(collector);
         bolt.setElasticSearch(elasticSearch);
-        bolt.setFinishedDomains(new Hashtable<>());
+        bolt.setFinishedShops(new HashSet<>());
     }
 
 
@@ -39,31 +35,31 @@ public class BPFinishedDomainBoltTest {
     public void ignoreNonTickTuples(){
         Tuple nonTickTuple = MockTupleHelpers.mockTuple("a","b");
         bolt.execute(nonTickTuple);
-        verify(collector,times(0)).emit(anyString(), any(Tuple.class), any());
+        verify(collector,never()).emit(anyString(), any(Tuple.class), any());
     }
 
     @Test
-    public void emitTupleWhenDomainFinished() throws IOException {
+    public void emitTupleWhenShopFinished() throws IOException {
         Tuple tickTuple = MockTupleHelpers.mockTickTuple();
 
-        List<String> finishedDomains = new ArrayList<>();
-        finishedDomains.add("1234");
-        doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
+        List<Long> finishedShops = new ArrayList<>();
+        finishedShops.add(1234L);
+        doReturn(finishedShops).when(elasticSearch).getFinishedShops();
         bolt.execute(tickTuple);
-        verify(collector,times(1)).emit(anyString(),any(Tuple.class),any());
+        verify(collector).emit(anyString(),any(Tuple.class),any());
     }
 
     @Test
-    public void emitNoTupleWhenTupleOfFinishedDomainWasAlreadyEmitted() throws IOException {
+    public void emitNoTupleWhenTupleOfFinishedShopWasAlreadyEmitted() throws IOException {
         Tuple tickTuple = MockTupleHelpers.mockTickTuple();
-        List<String> finishedDomains = new ArrayList<>();
-        finishedDomains.add("1234");
-        finishedDomains.add("5678");
-        doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
+        List<Long> finishedShops = new ArrayList<>();
+        finishedShops.add(1234L);
+        finishedShops.add(5678L);
+        doReturn(finishedShops).when(elasticSearch).getFinishedShops();
         bolt.execute(tickTuple);
 
-        finishedDomains.add("5432");
-        doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
+        finishedShops.add(5432L);
+        doReturn(finishedShops).when(elasticSearch).getFinishedShops();
         bolt.execute(tickTuple);
         verify(collector,times(3)).emit(anyString(),any(Tuple.class),any());
 
@@ -72,8 +68,8 @@ public class BPFinishedDomainBoltTest {
     @Test
     public void notEmmitTupleWhenNoShopisFinished() throws IOException {
         Tuple tickTuple = MockTupleHelpers.mockTickTuple();
-        List<String> finishedDomains = new ArrayList<>();
-        doReturn(finishedDomains).when(elasticSearch).getFinishedDomains();
+        List<Long> finishedShops = new ArrayList<>();
+        doReturn(finishedShops).when(elasticSearch).getFinishedShops();
         bolt.execute(tickTuple);
         verify(collector, never()).emit(anyString(),any(Tuple.class),any());
 

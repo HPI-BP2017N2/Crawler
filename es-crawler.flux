@@ -51,8 +51,8 @@ bolts:
     className: "com.digitalpebble.stormcrawler.elasticsearch.metrics.StatusMetricsBolt"
     parallelism: 1
 
-  - id: "finishedDomain"
-    className: "de.hpi.bpStormcrawler.BPFinishedDomainBolt"
+  - id: "finishedShop"
+    className: "de.hpi.bpStormcrawler.BPFinishedShopBolt"
     parallelism: 1
 
   - id: "HTMLstore"
@@ -146,8 +146,8 @@ streams:
         type: LOCAL_OR_SHUFFLE
         streamId: "storage"
 
-  - from: "finishedDomain"
+  - from: "finishedShop"
     to: "finishedShopStore"
     grouping:
         type: LOCAL_OR_SHUFFLE
-        streamId: "finishedDomainNotification"
+        streamId: "finishedShopNotification"
