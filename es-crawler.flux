@@ -150,4 +150,4 @@ streams:
     to: "finishedShopStore"
     grouping:
         type: LOCAL_OR_SHUFFLE
-        streamId: "finishedShopNotification"
+        streamId: "finishedShopsNotification"
