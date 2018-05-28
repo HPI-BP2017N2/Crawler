@@ -60,7 +60,7 @@ config:
   # set it to -1 to never refetch a page
   fetchInterval.default: -1
 
-  fetcher.server.delay: 6.0
+  fetcher.server.delay: 10.0
 
   # revisit a page with a fetch error after 2 hours (value in minutes)
   # set it to -1 to never refetch a page
