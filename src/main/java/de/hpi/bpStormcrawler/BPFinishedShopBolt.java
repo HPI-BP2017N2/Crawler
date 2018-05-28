@@ -67,7 +67,7 @@ public class BPFinishedShopBolt extends BaseRichBolt {
     /**
      * Set Storm configuration for this component
      * Cannot get interval from Storm configuration as this method gets called before the prepare method
-     * 
+     *
      */
     @Override
     public Map<String, Object> getComponentConfiguration() {

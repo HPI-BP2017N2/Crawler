@@ -87,7 +87,7 @@ streams:
       type: SHUFFLE
 
   - from: "spout"
-    to: "finishedDomain"
+    to: "finishedShop"
     grouping:
         type: SHUFFLE
 
