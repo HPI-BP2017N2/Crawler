@@ -103,10 +103,16 @@ public class BPFinishedShopBolt extends BaseRichBolt {
         return config;
     }
 
+    /**
+     * This is the cleanup method which gets calles before the component is terminated
+     * It closes the established Elasticsearch connection
+     */
     @Override
     public void cleanup() {
         getElasticSearch().close();
     }
+
+
 
     /** We declare how a tuple this component emits looks like. We already also specify the streamId in which we emmit
      * this tuple into

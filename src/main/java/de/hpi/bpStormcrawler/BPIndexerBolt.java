@@ -35,12 +35,24 @@ public class BPIndexerBolt extends IndexerBolt {
     private OutputCollector collector;
 
 
+    /** This method is called once and prepares the component to be used. It configures the component.
+     * @param conf The storm configuration in .yaml files
+     * @param context the topology context gives information about the components place in the topology
+     * @param collector the collector for the output fields
+     */
     @Override
     public void prepare(Map conf, TopologyContext context, OutputCollector collector) {
         super.prepare(conf, context, collector);
         setCollector(collector);
     }
 
+    /** This message is executed every time a tuple arrives.
+     * It does the indexing part which is executed by the parent class
+     *
+     * Also it extracts the important fields which we want to store later on from the given tuple.
+     *
+     * @param tuple The tuple that arrives from another component or storm itself
+     */
     @Override
     public void execute(Tuple tuple) {
         super.execute(tuple);
@@ -59,6 +71,11 @@ public class BPIndexerBolt extends IndexerBolt {
         return valueForURL(tuple);
     }
 
+    /**
+     * We declare how a tuple this component emits looks like. We already also specify the streamId in which we emmit
+     * this tuple into
+     * @param declarer is the declarer which is used to configure which tuples the component emmits
+     */
     @Override
     public void declareOutputFields(OutputFieldsDeclarer declarer) {
         super.declareOutputFields(declarer);
