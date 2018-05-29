@@ -41,6 +41,12 @@ public class BPStatusElasticSearch {
         setShopsWithUrlsDiscoveredSearchRequest(buildShopsWithStatusDiscoveredRequest());
     }
 
+
+    /**This methods submits a request to Elasticsearch which shops have been finished crawling.
+     * Finished Crawling mean that for a shopId there is no more URL with status DISCOVERED
+     * @return List of shopIds which are finished crawling
+     * @throws IOException Can occur when we don't get a connection to Elasticsearch or the search query is invalid
+     */
     public List<Long> getFinishedShops() throws IOException {
         SearchResponse response = getConnection().getClient().search(getShopsWithUrlsDiscoveredSearchRequest());
         return extractFinishedShops(response);

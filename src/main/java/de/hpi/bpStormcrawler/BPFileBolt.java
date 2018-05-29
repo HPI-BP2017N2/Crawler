@@ -28,6 +28,18 @@ public class BPFileBolt extends BaseRichBolt {
          _collector = outputCollector;
     }
 
+    /** This method extracts from each tuple the relevant information to be stored
+     *
+     * It stores each HTML Page in a seperate file which is automatically named and stored in the right folder.
+     * The naming scheme is the shopId-rootURL-timestamp.html and stored in the folder of the domain with
+     * the name of the rootURl.
+     * This is therefore a possible structure
+     * crawledPages/www_alternate_de/1234-www_alternate_de-12434834983498.html
+     *
+     * The required directories are automatically created if not yet existent
+     *
+     * @param tuple The input tuple which should be stored in a file
+     */
     @Override
     public void execute(Tuple tuple) {
         long shopID = tuple.getLongByField("shopID");

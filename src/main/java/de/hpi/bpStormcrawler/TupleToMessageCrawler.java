@@ -31,6 +31,13 @@ public class TupleToMessageCrawler extends TupleToMessage {
         this.logger = LoggerFactory.getLogger(this.getClass());
     }
 
+    /**This method translates a tuple to the message which will be send to RabbitMQ
+     * It builds the JSON Object by taking the tuple name as name for the field in JSON and its value as value
+     * The value of each part of a tuple should be convertable to a string
+     *
+     * @param tuple the Tuple to translate
+     * @return a serialized byte array representing a JSON Object as string
+     */
     @Override
     protected byte[] extractBody(Tuple tuple) {
 
