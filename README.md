@@ -53,6 +53,7 @@ For comfortable use create startup scripts for the services in /etc/systemd/syst
 ```ini
 [Unit]
 Description=Runs the storm nimbus service
+ 
 [Service]
 Type=simple
 User=storm
@@ -60,6 +61,7 @@ Group=storm
 ExecStart=/usr/local/storm/bin/storm nimbus
 Restart=on-failure
 SyslogIdentifier=storm-nimbus
+ 
 [Install]
 WantedBy=multi-user.target
 ```
@@ -67,6 +69,7 @@ WantedBy=multi-user.target
 ```ini
 [Unit]
 Description=Runs the storm supervisor
+ 
 [Service]
 Type=simple
 User=storm
@@ -74,6 +77,7 @@ Group=storm
 ExecStart=/usr/local/storm/bin/storm supervisor
 Restart=on-failure
 SyslogIdentifier=storm-supervisor
+ 
 [Install]
 WantedBy=multi-user.target
 ```
@@ -81,6 +85,7 @@ WantedBy=multi-user.target
 ```ini
 [Unit]
 Description=Runs the storm ui service
+ 
 [Service]
 Type=simple
 User=storm
@@ -88,6 +93,7 @@ Group=storm
 ExecStart=/usr/local/storm/bin/storm ui
 Restart=on-failure
 SyslogIdentifier=storm-ui
+ 
 [Install]
 WantedBy=multi-user.target
 ```
@@ -164,7 +170,7 @@ Visit-time: 2300-0645
 Currently the components BPFinishedShopBolt has a InMemory HashSet of Domains for which a notification already has been send. When the crawler will be restarted during the process it will send out notifications for all domains which have been finished until that point.
 #### Make Elasticsearch Query for FinishedShops more performant
 Currently we do an aggregation query which asks for all domains with the number of URL which have the status `DISCOVERED`.  This is quite costly when Elasticsearch contains a lot of URLs. With the help of a custom bolt this could be more efficient. This [bolt](https://stackoverflow.com/questions/49877898/stormcrawler-do-action-when-crawling-one-domain-finished) could tracks which domains are currently crawled and gives a signal when one domains has not been fetched after a specified time. Then the previous costly query could be executed which would be more efficient.
-##Bugs
+## Bugs
 ### Kibana not showing links which have the status `FETCHED`
 Currently when you want to explore the Elasticsearch database Kibana will not show URLs with the status `FETCHED` even though they are in Elasticsearch. This could also be a bug from the configuration here as this apparently appears on other setups.
 ### Crawling intervals of 5-10 minutes
