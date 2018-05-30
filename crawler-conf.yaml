@@ -12,8 +12,8 @@ config:
 
   fetcher.threads.number: ${fetcher.threads}
 
-  # give 2gb to the workers
   worker.heap.memory.mb: ${crawler.memory}
+
 
   # mandatory when using Flux
   topology.kryo.register:
@@ -45,6 +45,8 @@ config:
   # Set -1 to disable the limit.
   http.content.limit: -1
 
+  #Activates the sitemap parser which will download the sitemap from a page and put new discovered URLs in elasticsearch
+  #to be crawled
   sitemap.discovery: true
   sitemap.sniffContent: true
 
@@ -60,6 +62,7 @@ config:
   # set it to -1 to never refetch a page
   fetchInterval.default: -1
 
+  #The minimum delay how often a domain should be visited
   fetcher.server.delay: 10.0
 
   # revisit a page with a fetch error after 2 hours (value in minutes)
@@ -93,4 +96,3 @@ config:
      - class: "org.apache.storm.metric.LoggingMetricsConsumer"
        parallelism.hint: 1
 
- #FinishedShopBolt
