@@ -1,5 +1,5 @@
 # Scout-Crawler
-The crawler is a system based on StormCrawler to crawl continuously a specified list of domains completely and hand the crawled web pages to other components via RabbitMQ and notifies when a domain has finished crawling
+The crawler is a system based on StormCrawler to crawl a specified list of domains completely and hand the crawled web pages to other components via RabbitMQ and notifies when a domain has finished crawling
 ## Getting Started
 These instructions will get you running the system on your local machine for development and testing purposes. 
 ### Prerequisites
@@ -9,7 +9,7 @@ What things you need to install the software and how to install them
 - Storm 1.2.1
 - Elasticsearch 6
 - Kibana or Grafana (optional to see metrics)
-- RabbitMQ (when you want to store the crawled pages somewhere)
+- RabbitMQ (if you want to store the crawled pages somewhere)
 #### Required Files
 For the following getting started guide it is assumed that you have the following files created in the project path
 ##### seeds.txt
