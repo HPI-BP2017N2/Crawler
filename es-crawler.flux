@@ -14,10 +14,6 @@ includes:
       override: true
 
     - resource: false
-      file: "local-conf.yaml"
-      override: true
-
-    - resource: false
       file: "es-conf.yaml"
       override: true
 
